@@ -3,9 +3,11 @@ from typing import List
 
 import numpy as np
 
+
 class Bet(Enum):
     UNDER = 0
     OVER = 1
+
 
 class BetType(Enum):
     TWO_BET_POWER = 1
@@ -15,6 +17,7 @@ class BetType(Enum):
     FOUR_BET_POWER = 5
     FIVE_BET_FLEX = 6
     SIX_BET_FLEX = 7
+
 
 PAYOFFS = {
     BetType.TWO_BET_POWER: [0.0, 0.0, 3.0],
@@ -28,25 +31,21 @@ PAYOFFS = {
 
 
 def payoff_calculator(
-    lines: List[float], 
-    results: List[float],
-    bets: List[BetType],
-    bet_type: BetType, 
-    bet_amount: float
+    lines: List[float], results: List[float], bets: List[Bet], bet_type: BetType, bet_amount: float
 ) -> float:
     """Calculates payoff for a prize picks parlay
 
     Args:
         lines (List[float]): Betting lines
         results (List[float]): Actual results
-        bets (List[BetType]): Over/Under bets on each line
+        bets (List[Bet]): Over/Under bets on each line
         bet_type (BetType): What kind of bet was the parlay
         bet_amount (float): How much money was placed on the parlay
     Returns:
         payout (float): Total money paid out (includes money put in)
     """
-    # Sanity checks 
-    assert len(lines) == len(results)
+    # Sanity checks
+    assert len(lines) == len(results) == len(bets)
     num_legs_parlay = len(lines)
     payoff_scheme = PAYOFFS[bet_type]
     assert len(payoff_scheme) - 1 == len(lines)
@@ -58,25 +57,45 @@ def payoff_calculator(
 
     bets_placed = np.array([bet.value for bet in bets])
     num_bets_won = sum(bets_placed == bet_outcomes)
-    
+
     payout = bet_amount * payoff_scheme[num_bets_won]
 
     return payout
 
-if __name__ == "__main__":
-    lines = [29.5, 32.0, 1.5, 0.5, 4.5]
-    results = [30.0, 31.0, 2.0, 1.0, 4.0]
-    bets = [Bet.OVER, Bet.UNDER, Bet.OVER, Bet.OVER, Bet.UNDER]
-    bet_type = BetType.FIVE_BET_FLEX
-    bet_amount = 400
-    payout = payoff_calculator(
-        lines, 
-        results, 
-        bets, 
-        bet_type, 
-        bet_amount
+
+def payoff_for_multiple_parlays(
+    all_lines: List[List[float]],
+    all_results: List[List[float]],
+    all_bets: List[List[Bet]],
+    all_bet_types: List[BetType],
+    all_bet_amounts: List[float],
+) -> float:
+    """Calculate payouts for multiple parlays. Useful utility method
+       for calculating results for an entire week.
+
+    Args:
+        all_lines (List[List[float]]): Betting lines for each parlay
+        all_results (List[List[float]]): Results for each parlay
+        all_bets (List[List[Bet]]): The bet on each line on each parlay
+        all_bet_types (List[BetType]): The type of parlay for each parlay
+        all_bet_amounts (List[float]): How much money was placed on each parlay
+
+    Returns:
+        payout (float): Total payout
+    """
+    assert (
+        len(all_lines)
+        == len(all_results)
+        == len(all_bets)
+        == len(all_bet_types)
+        == len(all_bet_amounts)
     )
-    print(f"Payout is {payout}")
+    total_payout = 0
 
+    for (lines, results, bets, bet_type, bet_amount) in zip(
+        all_lines, all_results, all_bets, all_bet_types, all_bet_amounts
+    ):
+        total_payout += payoff_calculator(lines, results, bets, bet_type, bet_amount)
 
+    return total_payout
 
