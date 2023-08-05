@@ -23,7 +23,6 @@ parser.add_argument("--ud", default=False, action="store_true",
 
 parser.add_argument("--pp", default=False, action="store_true",
                     help="Prizepicks Lines")
-
 parser.add_argument("--wnba", default=False, action="store_true",
                     help="Only WNBA lines")
 parser.add_argument("--mlb", default=False, action="store_true",
