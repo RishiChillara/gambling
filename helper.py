@@ -7,9 +7,9 @@ class PlayerProp:
         self.line = None
         self.propTitle = None
     
-    def __init__(self, line, propTitle):
-        self.league = None
-        self.athleteName = None
+    def __init__(self, athleteName, propTitle, line, league):
+        self.league = league
+        self.athleteName = athleteName
         self.line = line
         self.propTitle = propTitle
 
@@ -26,7 +26,12 @@ class MLBProps(Enum):
      HITS=9
      STEALS=10
 
-mlbPropAlias = {
+class WNBAProps(Enum):
+    POINTS = 1
+    REBOUNDS = 2
+    ASSISTS = 3
+
+prop_alias = {
     "Strikeouts": MLBProps.STRIKEOUTS,
     "Pitcher Strikeouts" : MLBProps.STRIKEOUTS,
     "Hits Allowed": MLBProps.HITSALLOWED,
@@ -39,7 +44,13 @@ mlbPropAlias = {
     "RBIs": MLBProps.RBI,
     "Runs Batted In": MLBProps.RBI,
     "Hits": MLBProps.HITS,
-    "Steals": MLBProps.STEALS
+    "Steals": MLBProps.STEALS,
+    "player-points": WNBAProps.POINTS,
+    "player-rebounds": WNBAProps.REBOUNDS,
+    "player-assists": WNBAProps.ASSISTS,
+    "Points" : WNBAProps.POINTS,
+    "Rebounds": WNBAProps.REBOUNDS,
+    "Assists": WNBAProps.ASSISTS
     }
 
 def calculate_no_vig_percent(american_odds1, american_odds2):
@@ -69,4 +80,4 @@ def american_to_implied_prop(american):
     if american > 0:
         return (100 / (american + 100))
     else:
-        return (-1 * american / (-1 * american + 100))
+        return (-1 * american) / ((-1 * american) + 100)
