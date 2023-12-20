@@ -1,4 +1,4 @@
-from gambling.trade_checker import payoff_calculator, payoff_for_multiple_parlays, Bet, BetType
+from utils.trade_checker import payoff_calculator, payoff_for_multiple_parlays, Bet, BetType
 
 
 def test_payoff_calculator_five_bet_flex_five_wins():

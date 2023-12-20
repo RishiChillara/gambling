@@ -17,7 +17,7 @@ def odds_export(driver):
 
 def scrapeDFSOdds(driver):
     mlb_df = scrapeMLB(driver)
-    wnba_df = scrapeWNBA(driver)
+    wnba_df = scrapeDraftKings(driver)
 
     return pd.concat([mlb_df, wnba_df], ignore_index=True, axis=0)
 
@@ -68,46 +68,50 @@ def scrapeMLB(driver):
     return pd.DataFrame(props_dict)
 
 
-def scrapeWNBA(driver):
-    interested_props = ["player-points", "player-rebounds","player-assists"]
+def scrapeDraftKings(driver):
+    url_to_props = {"https://sportsbook.draftkings.com/leagues/basketball/wnba?category=": ["player-points", "player-rebounds","player-assists"],
+                    "https://sportsbook.draftkings.com/leagues/baseball/mlb?category=batter-props&subcategory=": ["total-bases", "hits", "rbis", "hits-+-runs-+-rbis", "strikeouts", "singles"],
+                    "https://sportsbook.draftkings.com/leagues/baseball/mlb?category=pitcher-props&subcategory=": ["strikeouts", "outs-recorded", "hits-recorded", "walks", "earned-runs"]
+                    }
     props_dict = {"Name": [], "Prop Title": [], "Line": [], "Over": [], "Under": [], "League": [], }
 
-    for prop in interested_props:  
-        url = "https://sportsbook.draftkings.com/leagues/basketball/wnba?category=" + prop
-        driver.get(url)
+    for url in url_to_props:  
+        for prop in url_to_props[url]:
+        
+            driver.get(url + prop)
 
-        tables = driver.find_elements(By.CLASS_NAME, "sportsbook-table__body")
+            tables = driver.find_elements(By.CLASS_NAME, "sportsbook-table__body")
 
-        for table in tables:
-            for row in table.find_elements(By.CSS_SELECTOR, 'tr'):
-                athelte_name = row.find_element(By.CLASS_NAME, "sportsbook-row-name").text
-                over_odds = 100
-                under_odds = 100
-                line = 0
-                for cell in row.find_elements(By.TAG_NAME, 'td'):
-                    line = float(cell.find_element(By.CLASS_NAME, "sportsbook-outcome-cell__line").text)
-                    
-                    over_or_under = cell.find_element(By.CLASS_NAME, "sportsbook-outcome-cell__label").text
-                    odds = cell.find_element(By.CLASS_NAME, "sportsbook-odds").text
-                    try: 
-                        odds = int(odds)
-                    except ValueError:
-                        odds = int(odds[1:]) * -1
+            for table in tables:
+                for row in table.find_elements(By.CSS_SELECTOR, 'tr'):
+                    athelte_name = row.find_element(By.CLASS_NAME, "sportsbook-row-name").text
+                    over_odds = 100
+                    under_odds = 100
+                    line = 0
+                    for cell in row.find_elements(By.TAG_NAME, 'td'):
+                        line = float(cell.find_element(By.CLASS_NAME, "sportsbook-outcome-cell__line").text)
+                        
+                        over_or_under = cell.find_element(By.CLASS_NAME, "sportsbook-outcome-cell__label").text
+                        odds = cell.find_element(By.CLASS_NAME, "sportsbook-odds").text
+                        try: 
+                            odds = int(odds)
+                        except ValueError:
+                            odds = int(odds[1:]) * -1
 
-                    if over_or_under == "O":
-                        over_odds = odds
-                    else:       
-                        under_odds = odds  
+                        if over_or_under == "O":
+                            over_odds = odds
+                        else:       
+                            under_odds = odds  
 
-                    props_dict["Name"].append(athelte_name)
-                    if prop in prop_alias:
-                        prop = str(prop_alias[prop])
-                    props_dict["Prop Title"].append(prop)
-                    props_dict["Line"].append(line)
+                        props_dict["Name"].append(athelte_name)
+                        if prop in prop_alias:
+                            prop = str(prop_alias[prop])
+                        props_dict["Prop Title"].append(prop)
+                        props_dict["Line"].append(line)
 
-                    over_percent, under_percent = calculate_no_vig_percent(over_odds, under_odds)
-                    props_dict["Over"].append(over_percent)
-                    props_dict["Under"].append(under_percent)
-                    props_dict["League"].append("WNBA")
+                        over_percent, under_percent = calculate_no_vig_percent(over_odds, under_odds)
+                        props_dict["Over"].append(over_percent)
+                        props_dict["Under"].append(under_percent)
+                        props_dict["League"].append("WNBA")
 
     return pd.DataFrame(props_dict)

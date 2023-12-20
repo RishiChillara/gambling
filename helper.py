@@ -31,6 +31,10 @@ class WNBAProps(Enum):
     REBOUNDS = 2
     ASSISTS = 3
 
+class ESportsProps(Enum):
+    MAP_1_2_3 = 1
+    
+
 prop_alias = {
     "Strikeouts": MLBProps.STRIKEOUTS,
     "Pitcher Strikeouts" : MLBProps.STRIKEOUTS,

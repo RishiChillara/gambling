@@ -3,7 +3,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from helper import PlayerProp
 from helper import prop_alias
-from helper import MLBProps
 from IPython.display import display
 
 
@@ -34,6 +33,9 @@ def scapeUnderDogLines(driver):
             try: 
                 athlete_name = players[i]["first_name"] + " " + players[i]["last_name"]
                 league = players[i]["sport_id"]
+                if league == "ESPORTS":
+                     league =  athlete_name.split(" ")[0]
+                     athlete_name = athlete_name.split(" ")[1].lower()
             except KeyError:
                 continue
 

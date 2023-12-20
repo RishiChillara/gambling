@@ -1,9 +1,9 @@
 from odds_scrape import odds_export
-from odds_scrape import scrapeWNBA
 from odds_scrape import scrapeMLB
 from prizepicks_line_scrape import scapePrizePicksLines
 from underdog_line_scrape import scapeUnderDogLines
-from odds_scrape import scrapeWNBA
+from parlay_pay_scrape import scrapeParlayPlay
+from odds_scrape import scrapeDraftKings
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -23,21 +23,24 @@ parser.add_argument("--ud", default=False, action="store_true",
 
 parser.add_argument("--pp", default=False, action="store_true",
                     help="Prizepicks Lines")
-parser.add_argument("--wnba", default=False, action="store_true",
-                    help="Only WNBA lines")
-parser.add_argument("--mlb", default=False, action="store_true",
-                    help="Only MLB lines")
-
-parser.add_argument("--esports", default=False, action="store_true", 
-                    help="Only Esports Lines")
+parser.add_argument("--esports",default=False, action='store_true', help="just esports")
 
 options = FirefoxOptions()
 options.add_argument("--headless")
 driver = webdriver.Firefox(options=options)
 
+pd.set_option("display.max_colwidth", 10000)
+
 
 def run():
     args = parser.parse_args()
+
+    if args.esports:
+        # underDogLines = scapeUnderDogLines(driver)
+        prizePicksLines = scapePrizePicksLines(driver)
+        # test_frame = pd.merge(underDogLines, prizePicksLines, on=["Name", "Prop Title"])
+        print(prizePicksLines.to_string())
+        return
 
     if args.read_odds:
         sportsbook_lines = pd.read_csv("temp_storage.csv")
@@ -45,10 +48,6 @@ def run():
         sportsbook_lines['Prop Title'] = sportsbook_lines['Prop Title'].str.strip()
         sportsbook_lines['League'] = sportsbook_lines['League'].str.strip()
         sportsbook_lines["Line"].apply(lambda x: float(x))
-    elif args.wnba:
-        sportsbook_lines = scrapeWNBA(driver)
-    elif args.mlb:
-        sportsbook_lines = scrapeMLB(driver)
     else:
         sportsbook_lines = odds_export(driver)
 
@@ -58,7 +57,6 @@ def run():
     if args.pp:
         dfs_lines = scapePrizePicksLines(driver)
         dfs_winning_line = 0.5434
-
     
 
     dfs_lines["Line"].apply(lambda x: float(x))
@@ -70,3 +68,5 @@ def run():
 
 
     display(test_frame.to_string())
+
+run()
